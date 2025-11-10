@@ -34,7 +34,6 @@ import { encodeUint8ArrayToBase64 } from '@openai/agents/utils';
 /**
  * @internal
  * Converts a list of model items to a list of language model V2 messages.
- * hello
  * @param model - The model to use.
  * @param items - The items to convert.
  * @returns The list of language model V2 messages.
@@ -102,7 +101,21 @@ export function itemsToLanguageV2Messages(
                     };
                   }
                   if (c.type === 'input_file') {
-                    throw new UserError('File inputs are not supported.');
+                    const fileSource =
+                      typeof c.file === 'string'
+                        ? c.file
+                        : typeof (c as any).url === 'string'
+                          ? (c as any).url
+                          : undefined;
+
+                    return {
+                      type: 'file',
+                      data: fileSource ?? '',
+                      mediaType: 'application/pdf',
+                      providerOptions: {
+                        ...(contentProviderData ?? {}),
+                      },
+                    };
                   }
                   throw new UserError(`Unknown content type: ${c.type}`);
                 }),
